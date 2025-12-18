@@ -1,0 +1,70 @@
+name: 🍏 iOS Simulator Template Export
+on:
+  workflow_call:
+  workflow_dispatch:
+
+# Global Settings
+env:
+  SCONS_FLAGS: >-
+    dev_mode=yes
+    module_text_server_fb_enabled=yes
+    tests=no
+    debug_symbols=no
+
+jobs:
+  ios-simulator-template:
+    runs-on: macos-latest
+    name: iOS Simulator Template (target=template_release)
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: 3.6
+          submodules: recursive
+
+      # From https://github.com/actions/runner-images/blob/main/images/macos
+      - name: Select Xcode 26
+        run: sudo xcode-select -s /Applications/Xcode_26.0.1.app
+
+      - name: Restore Godot build cache
+        uses: ./.github/actions/godot-cache-restore
+        with:
+          cache-name: ios-simulator-template
+        continue-on-error: true
+
+      - name: Setup Python and SCons
+        uses: ./.github/actions/godot-deps
+
+      - name: Compilation (x86_64 simulator)
+        uses: ./.github/actions/godot-build
+        with:
+          scons-flags: ${{ env.SCONS_FLAGS }} arch=x86_64 ios_simulator=yes
+          platform: ios
+          target: template_release
+
+      - name: Compilation (arm64 simulator)
+        uses: ./.github/actions/godot-build
+        with:
+          scons-flags: ${{ env.SCONS_FLAGS }} arch=arm64 ios_simulator=yes
+          platform: ios
+          target: template_release
+
+      - name: Save Godot build cache
+        uses: ./.github/actions/godot-cache-save
+        with:
+          cache-name: ios-simulator-template
+        continue-on-error: true
+
+      - name: Prepare artifact
+        run: |
+          lipo -create ./bin/godot.ios.template_release.x86_64.simulator ./bin/godot.ios.template_release.arm64.simulator -output ./bin/godot.ios.template_release.simulator
+          rm ./bin/godot.ios.template_release.x86_64.simulator ./bin/godot.ios.template_release.arm64.simulator
+          strip bin/godot.ios.template_release.simulator
+          chmod +x bin/godot.ios.template_release.simulator
+
+      - name: Upload artifact
+        uses: ./.github/actions/upload-artifact
+        with:
+          name: ios-simulator-template

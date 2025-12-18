@@ -1,0 +1,12 @@
+name: 🚀 CI - iOS Simulator Template
+on:
+  push:
+    branches: [compile-template-3.6.2]
+  pull_request:
+    branches: [compile-template-3.6.2]
+  workflow_dispatch:
+
+jobs:
+  ios-simulator-template:
+    name: Build iOS Simulator Template
+    uses: ./.github/workflows/ios_simulator_template.yml

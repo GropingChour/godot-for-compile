@@ -6,15 +6,13 @@ on:
 # Global Settings
 env:
   SCONS_FLAGS: >-
-    dev_mode=yes
-    module_text_server_fb_enabled=yes
-    tests=no
+    verbose=yes
     debug_symbols=no
 
 jobs:
   ios-simulator-template:
     runs-on: macos-latest
-    name: iOS Simulator Template (target=template_release)
+    name: iOS Simulator Template (target=release)
     timeout-minutes: 60
 
     steps:
@@ -40,16 +38,18 @@ jobs:
       - name: Compilation (x86_64 simulator)
         uses: ./.github/actions/godot-build
         with:
-          scons-flags: ${{ env.SCONS_FLAGS }} arch=x86_64 ios_simulator=yes
+          sconsflags: ${{ env.SCONS_FLAGS }} arch=x86_64 ios_simulator=yes
           platform: ios
-          target: template_release
+          target: release
+          tools: no
 
       - name: Compilation (arm64 simulator)
         uses: ./.github/actions/godot-build
         with:
-          scons-flags: ${{ env.SCONS_FLAGS }} arch=arm64 ios_simulator=yes
+          sconsflags: ${{ env.SCONS_FLAGS }} arch=arm64 ios_simulator=yes
           platform: ios
-          target: template_release
+          target: release
+          tools: no
 
       - name: Save Godot build cache
         uses: ./.github/actions/godot-cache-save
@@ -59,10 +59,10 @@ jobs:
 
       - name: Prepare artifact
         run: |
-          lipo -create ./bin/godot.ios.template_release.x86_64.simulator ./bin/godot.ios.template_release.arm64.simulator -output ./bin/godot.ios.template_release.simulator
-          rm ./bin/godot.ios.template_release.x86_64.simulator ./bin/godot.ios.template_release.arm64.simulator
-          strip bin/godot.ios.template_release.simulator
-          chmod +x bin/godot.ios.template_release.simulator
+          lipo -create ./bin/godot.iphone.opt.x86_64.simulator ./bin/godot.iphone.opt.arm64.simulator -output ./bin/godot.iphone.opt.simulator
+          rm ./bin/godot.iphone.opt.x86_64.simulator ./bin/godot.iphone.opt.arm64.simulator
+          strip bin/godot.iphone.opt.simulator
+          chmod +x bin/godot.iphone.opt.simulator
 
       - name: Upload artifact
         uses: ./.github/actions/upload-artifact

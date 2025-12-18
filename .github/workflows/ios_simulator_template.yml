@@ -5,34 +5,21 @@ on:
 
 # Global Settings
 env:
-  SCONS_FLAGS: >-
-    verbose=yes
-    debug_symbols=no
+  # Only used for the cache key. Increment version to force clean build.
+  GODOT_BASE_BRANCH: 3.6
+  SCONSFLAGS: verbose=yes warnings=all werror=yes debug_symbols=no
+
+concurrency:
+  group: ci-${{github.actor}}-${{github.head_ref || github.run_number}}-${{github.ref}}-ios-simulator
+  cancel-in-progress: true
 
 jobs:
   ios-simulator-template:
-    runs-on: macos-latest
-    name: iOS Simulator Template (target=release)
-    timeout-minutes: 60
+    runs-on: "macos-latest"
+    name: iOS Simulator Template (target=release, tools=no)
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: 3.6
-          submodules: recursive
-
-      # Setup Xcode - use latest stable version available on runner
-      - name: Setup Xcode
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: latest-stable
-
-      - name: Verify Xcode and SDK
-        run: |
-          xcodebuild -version
-          xcrun --sdk iphonesimulator --show-sdk-path
-          xcrun simctl list
+      - uses: actions/checkout@v4
 
       - name: Restore Godot build cache
         uses: ./.github/actions/godot-cache-restore
@@ -40,24 +27,24 @@ jobs:
           cache-name: ios-simulator-template
         continue-on-error: true
 
-      - name: Setup Python and SCons
+      - name: Setup python and scons
         uses: ./.github/actions/godot-deps
 
       - name: Compilation (x86_64 simulator)
         uses: ./.github/actions/godot-build
         with:
-          sconsflags: ${{ env.SCONS_FLAGS }} arch=x86_64 ios_simulator=yes
-          platform: ios
+          sconsflags: ${{ env.SCONSFLAGS }} arch=x86_64 ios_simulator=yes
+          platform: iphone
           target: release
-          tools: no
+          tools: false
 
       - name: Compilation (arm64 simulator)
         uses: ./.github/actions/godot-build
         with:
-          sconsflags: ${{ env.SCONS_FLAGS }} arch=arm64 ios_simulator=yes
-          platform: ios
+          sconsflags: ${{ env.SCONSFLAGS }} arch=arm64 ios_simulator=yes
+          platform: iphone
           target: release
-          tools: no
+          tools: false
 
       - name: Save Godot build cache
         uses: ./.github/actions/godot-cache-save

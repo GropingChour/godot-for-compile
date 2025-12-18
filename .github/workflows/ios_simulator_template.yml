@@ -46,35 +46,15 @@ jobs:
           target: release
           tools: false
 
+      - name: Create universal binary
+        run: |
+          lipo -create ./bin/libgodot.iphone.opt.x86_64.simulator.a ./bin/libgodot.iphone.opt.arm64.simulator.a -output ./bin/libgodot.iphone.opt.simulator.a
+
       - name: Save Godot build cache
         uses: ./.github/actions/godot-cache-save
         with:
           cache-name: ios-simulator-template
         continue-on-error: true
-
-      - name: List and verify binaries
-        run: |
-          echo "Listing all binaries in bin/ directory:"
-          ls -lah bin/
-          echo "---"
-          echo "Verifying simulator library files..."
-          if [ ! -f ./bin/libgodot.iphone.opt.x86_64.simulator.a ]; then
-            echo "ERROR: x86_64 simulator library not found!"
-            exit 1
-          fi
-          if [ ! -f ./bin/libgodot.iphone.opt.arm64.simulator.a ]; then
-            echo "ERROR: arm64 simulator library not found!"
-            exit 1
-          fi
-          echo "Both simulator libraries found successfully"
-
-      - name: Prepare artifact
-        run: |
-          lipo -create ./bin/libgodot.iphone.opt.x86_64.simulator.a ./bin/libgodot.iphone.opt.arm64.simulator.a -output ./bin/libgodot.iphone.opt.simulator.a
-          strip -S bin/libgodot.iphone.opt.simulator.a
-          echo "Created universal binary:"
-          file bin/libgodot.iphone.opt.simulator.a
-          lipo -info bin/libgodot.iphone.opt.simulator.a
 
       - name: Upload artifact
         uses: ./.github/actions/upload-artifact

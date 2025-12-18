@@ -57,27 +57,24 @@ jobs:
           echo "Listing all binaries in bin/ directory:"
           ls -lah bin/
           echo "---"
-          echo "Checking for expected simulator binaries:"
-          if [ ! -f ./bin/godot.iphone.opt.x86_64.simulator ]; then
-            echo "ERROR: x86_64 simulator binary not found!"
-            echo "Searching for similar files:"
-            find ./bin -name "*x86_64*" -o -name "*simulator*" || true
+          echo "Verifying simulator library files..."
+          if [ ! -f ./bin/libgodot.iphone.opt.x86_64.simulator.a ]; then
+            echo "ERROR: x86_64 simulator library not found!"
             exit 1
           fi
-          if [ ! -f ./bin/godot.iphone.opt.arm64.simulator ]; then
-            echo "ERROR: arm64 simulator binary not found!"
-            echo "Searching for similar files:"
-            find ./bin -name "*arm64*" -o -name "*simulator*" || true
+          if [ ! -f ./bin/libgodot.iphone.opt.arm64.simulator.a ]; then
+            echo "ERROR: arm64 simulator library not found!"
             exit 1
           fi
-          echo "Both binaries found successfully"
+          echo "Both simulator libraries found successfully"
 
       - name: Prepare artifact
         run: |
-          lipo -create ./bin/godot.iphone.opt.x86_64.simulator ./bin/godot.iphone.opt.arm64.simulator -output ./bin/godot.iphone.opt.simulator
-          rm ./bin/godot.iphone.opt.x86_64.simulator ./bin/godot.iphone.opt.arm64.simulator
-          strip bin/godot.iphone.opt.simulator
-          chmod +x bin/godot.iphone.opt.simulator
+          lipo -create ./bin/libgodot.iphone.opt.x86_64.simulator.a ./bin/libgodot.iphone.opt.arm64.simulator.a -output ./bin/libgodot.iphone.opt.simulator.a
+          strip -S bin/libgodot.iphone.opt.simulator.a
+          echo "Created universal binary:"
+          file bin/libgodot.iphone.opt.simulator.a
+          lipo -info bin/libgodot.iphone.opt.simulator.a
 
       - name: Upload artifact
         uses: ./.github/actions/upload-artifact

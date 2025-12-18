@@ -52,6 +52,26 @@ jobs:
           cache-name: ios-simulator-template
         continue-on-error: true
 
+      - name: List and verify binaries
+        run: |
+          echo "Listing all binaries in bin/ directory:"
+          ls -lah bin/
+          echo "---"
+          echo "Checking for expected simulator binaries:"
+          if [ ! -f ./bin/godot.iphone.opt.x86_64.simulator ]; then
+            echo "ERROR: x86_64 simulator binary not found!"
+            echo "Searching for similar files:"
+            find ./bin -name "*x86_64*" -o -name "*simulator*" || true
+            exit 1
+          fi
+          if [ ! -f ./bin/godot.iphone.opt.arm64.simulator ]; then
+            echo "ERROR: arm64 simulator binary not found!"
+            echo "Searching for similar files:"
+            find ./bin -name "*arm64*" -o -name "*simulator*" || true
+            exit 1
+          fi
+          echo "Both binaries found successfully"
+
       - name: Prepare artifact
         run: |
           lipo -create ./bin/godot.iphone.opt.x86_64.simulator ./bin/godot.iphone.opt.arm64.simulator -output ./bin/godot.iphone.opt.simulator
